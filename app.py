@@ -18,7 +18,7 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 
 # Google Drive file ID for the model
 file_id = '1uTzxTMij9s_YFv3lAVY6sqwP2diCRm0A'
-model_path = 'flower_model_final.keras'
+model_path = 'flower_model_best.keras'
 
 # Check if the model file exists; if not, download it
 if not os.path.exists(model_path):
