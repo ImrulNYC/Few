@@ -1,78 +1,63 @@
 import os
-import numpy as np
 import requests
 from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-import json
 
-# Configuration for model and labels
-MODEL_URL = 'https://flowerm.s3.us-east-1.amazonaws.com/flower_model_best.keras'
+# Configuration
+MODEL_URL = "https://flowerm.s3.us-east-1.amazonaws.com/flower_model_best.keras"
 MODEL_PATH = "flower_model_best.keras"
-CLASS_LABELS_PATH = "data/class_labels.json"
-IMG_WIDTH, IMG_HEIGHT = 288, 276
 
-# Function to download the model
-def download_model(url, local_path):
-    """
-    Downloads a file from the given URL to a local path.
-
-    Parameters:
-        url (str): The URL of the file to download.
-        local_path (str): The local path where the file should be saved.
-    """
-    print(f"Downloading model from {url}...")
-    try:
-        response = requests.get(url, stream=True)
-        response.raise_for_status()  # Raise an HTTPError for bad responses
-        with open(local_path, 'wb') as f:
+# Ensure the model exists locally
+def ensure_model_exists():
+    if not os.path.exists(MODEL_PATH):
+        print(f"Downloading model from {MODEL_URL}...")
+        response = requests.get(MODEL_URL, stream=True)
+        response.raise_for_status()  # Raise exception if the request fails
+        with open(MODEL_PATH, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-        print(f"Model downloaded successfully to {local_path}.")
-    except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Failed to download model: {e}")
+        print(f"Model downloaded successfully to {MODEL_PATH}.")
 
-# Ensure the model is available
-if not os.path.exists(MODEL_PATH):
-    download_model(MODEL_URL, MODEL_PATH)
+# Call the function to ensure the model exists before loading
+ensure_model_exists()
 
-# Load the trained model
+# Load the model globally for predictions
 model = load_model(MODEL_PATH)
-
-# Load class labels
-if not os.path.exists(CLASS_LABELS_PATH):
-    raise FileNotFoundError(f"Class labels file not found: {CLASS_LABELS_PATH}")
-with open(CLASS_LABELS_PATH, 'r') as f:
-    class_labels = json.load(f)
 
 def predict_flower(img_path):
     """
-    Predicts the flower type from an image.
+    Predict the type of flower from the image.
 
     Parameters:
-        img_path (str): Path to the image.
+        img_path (str): Path to the input image.
 
     Returns:
-        tuple: (predicted_label, confidence_percentage) or (None, None) if confidence is too low.
+        tuple: Predicted label and confidence percentage.
     """
-    if not os.path.exists(img_path):
-        raise FileNotFoundError(f"Image file not found: {img_path}")
-    
-    # Preprocess the image
-    img = image.load_img(img_path, target_size=(IMG_WIDTH, IMG_HEIGHT))
+    from tensorflow.keras.preprocessing import image
+    import numpy as np
+
+    # Image preprocessing
+    img_width, img_height = 288, 276
+    img = image.load_img(img_path, target_size=(img_width, img_height))
     img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)
     img_array /= 255.0  # Normalize image
 
-    # Predict the flower
+    # Predict using the loaded model
     predictions = model.predict(img_array)
-    confidence = np.max(predictions) * 100  # Convert to percentage
+    confidence = np.max(predictions) * 100  # Get confidence in percentage
     predicted_class = np.argmax(predictions, axis=1)[0]
 
-    # Get the label of the predicted class
+    # Load class labels from a file
+    CLASS_LABELS_PATH = "data/class_labels.json"
+    with open(CLASS_LABELS_PATH, "r") as f:
+        class_labels = json.load(f)
+
     predicted_label = list(class_labels.keys())[list(class_labels.values()).index(predicted_class)]
 
-    # Return prediction only if confidence is >= 80%
+    # Only return the result if confidence is high enough
     if confidence >= 80:
         return predicted_label, confidence
     else:
         return None, None
+

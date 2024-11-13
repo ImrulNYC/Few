@@ -11,8 +11,6 @@ app.secret_key = 'supersecretkey'
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-from datetime import datetime
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     filename = None
@@ -41,17 +39,11 @@ def index():
                 label = "The flower cannot be confidently recognized. Please try another image."
 
             # Pass filename and label to the template
-            return render_template('index.html', filename=filename, label=label, cache_buster=datetime.now().timestamp())
+            return render_template('index.html', filename=filename, label=label)
 
     # For GET requests, reset values
     return render_template('index.html', filename=None, label=None)
 
-
-
-
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return url_for('static', filename=f'uploads/{filename}')
 
 if __name__ == "__main__":
     # Use the PORT environment variable or default to 5000
