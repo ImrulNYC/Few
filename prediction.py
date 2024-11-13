@@ -1,6 +1,8 @@
 import os
 import requests
 from tensorflow.keras.models import load_model
+import json
+
 
 # Configuration
 MODEL_URL = "https://flowerm.s3.us-east-1.amazonaws.com/flower_model_best.keras"
