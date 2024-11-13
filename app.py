@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-import gdown
+import requests
 from flask import Flask, request, render_template, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from tensorflow.keras.models import load_model
@@ -16,17 +16,30 @@ app.secret_key = 'supersecretkey'  # Needed for flash messaging
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# Google Drive file ID for the model
-file_id = '1uTzxTMij9s_YFv3lAVY6sqwP2diCRm0A'
-model_path = 'flower_model_best.keras'
+# Model configuration
+MODEL_URL = 'https://flowerm.s3.us-east-1.amazonaws.com/flower_model_best.keras'
+MODEL_PATH = 'flower_model_best.keras'
 
-# Check if the model file exists; if not, download it
-if not os.path.exists(model_path):
-    url = 'https://drive.google.com/file/d/1uTzxTMij9s_YFv3lAVY6sqwP2diCRm0A/view?usp=share_link'
-    gdown.download(url, model_path, quiet=False)
+# Download the model from the public URL
+def download_model_from_url(url, local_path):
+    try:
+        print(f"Downloading model from {url}...")
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # Raise an error if the request fails
+        with open(local_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:  # Filter out keep-alive chunks
+                    f.write(chunk)
+        print(f"Model downloaded successfully to {local_path}.")
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"Failed to download model from URL: {e}")
+
+# Ensure the model is downloaded
+if not os.path.exists(MODEL_PATH):
+    download_model_from_url(MODEL_URL, MODEL_PATH)
 
 # Load the trained model
-model = load_model(model_path)
+model = load_model(MODEL_PATH)
 
 # Load class labels from the JSON file
 with open(os.path.join('data', 'class_labels.json'), 'r') as f:
