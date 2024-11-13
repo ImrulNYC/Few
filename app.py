@@ -22,7 +22,7 @@ model_path = 'flower_model_final.keras'
 
 # Check if the model file exists; if not, download it
 if not os.path.exists(model_path):
-    url = f'https://drive.google.com/file/d/1uTzxTMij9s_YFv3lAVY6sqwP2diCRm0A/view?usp=share_link'
+    url = 'https://drive.google.com/file/d/1uTzxTMij9s_YFv3lAVY6sqwP2diCRm0A/view?usp=share_link'
     gdown.download(url, model_path, quiet=False)
 
 # Load the trained model
