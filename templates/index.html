@@ -5,26 +5,41 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flower Prediction App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Upload a Flower Image</h1>
-    <form action="/" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept="image/*">
-        <input type="submit" value="Predict">
-    </form>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-    {% if filename %}
+    <div class="container">
+        <header>
+            <h1>🌺 Flower Prediction App 🌸</h1>
+            <p>Upload an image of a flower to predict its type!</p>
+        </header>
+        <main>
+            <form action="/" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept="image/*" class="file-input" required>
+                <button type="submit" class="btn">Predict</button>
+            </form>
+
+            {% if filename %}
+<div class="image-preview">
     <h2>Uploaded Image:</h2>
-    <img src="{{ url_for('uploaded_file', filename=filename) }}" alt="Uploaded Image" width="300">
+    <img src="{{ url_for('static', filename='uploads/' + filename) }}?{{ cache_buster }}" alt="Uploaded Image" class="uploaded-image">
     <h3>{{ label }}</h3>
-    {% endif %}
+</div>
+{% endif %}
+
+
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="result">
+                  <h2>Prediction Result:</h2>
+                  <p>{{ messages[0] }}</p>
+                </div>
+              {% endif %}
+            {% endwith %}
+        </main>
+        <footer>
+            <p>&copy; 2024 Flower Prediction App | Made with ❤️</p>
+        </footer>
+    </div>
 </body>
 </html>

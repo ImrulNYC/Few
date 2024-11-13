@@ -3,4 +3,7 @@ Flask
 tensorflow-cpu
 numpy
 gunicorn==21.0.0
+pillow
 
+## MODEL_URL = 'https://flowerm.s3.us-east-1.amazonaws.com/flower_model_best.keras'
+## MODEL_PATH = 'flower_model_best.keras'
